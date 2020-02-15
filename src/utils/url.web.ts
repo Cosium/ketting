@@ -11,7 +11,11 @@ export function resolve(base: string, relative: string): string {
 
   // If the URL object is supported, we prefer that.
   if (typeof URL !== 'undefined') {
-    return (new URL(relative, base).toString());
+    try {
+      return (new URL(relative, base).toString());
+    } catch (error) {
+      // Fallback to custom resolution
+    }
   }
 
   // Code taken from this gist:;
