@@ -1,28 +1,20 @@
 export PATH:=./node_modules/.bin/:$(PATH)
 
 .PHONY: build
-build: browser/ketting.min.js browser/mocha-tests.js tsbuild
+build: browser/ketting.min.js tsbuild
 
 .PHONY: clean
 clean:
 	-rm -r browser/
 	-rm -r dist/
 
-.PHONY: test
-test: lint
-	nyc mocha
-
-.PHONY: test-debug
-test-debug:
-	mocha --inspect-brk
-
 .PHONY: lint
 lint:
-	tslint -c tslint.json --project tsconfig.json 'src/**/*.ts' 'test/**/*.ts'
+	tslint -c tslint.json --project tsconfig.json 'src/**/*.ts'
 
 .PHONY: fix
 fix:
-	tslint -c tslint.json --project tsconfig.json 'src/**/*.ts' 'test/**/*.ts' --fix
+	tslint -c tslint.json --project tsconfig.json 'src/**/*.ts' --fix
 
 .PHONY: tsbuild
 tsbuild:
@@ -43,7 +35,3 @@ browserbuild: tsbuild
 
 
 browser/ketting.min.js: browserbuild
-browser/mocha-tests.js: browserbuild
-
-testserver: build
-	ts-node test/testserver.ts
