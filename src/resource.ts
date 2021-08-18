@@ -25,8 +25,6 @@ export class Resource<T = any> extends EventEmitter {
    */
   client: Client;
 
-  private activeRefresh: Promise<State<T>> | null;
-
   /**
    * Create the resource.
    *
@@ -36,7 +34,6 @@ export class Resource<T = any> extends EventEmitter {
     super();
     this.client = client;
     this.uri = uri;
-    this.activeRefresh = null;
 
   }
 
@@ -54,21 +51,12 @@ export class Resource<T = any> extends EventEmitter {
 
     const params = optionsToRequestInit('GET', getOptions);
 
-    if (!this.activeRefresh) {
-      this.activeRefresh = (async() : Promise<State<T>> => {
-        try {
-          const response = await this.fetchOrThrow(params);
-          const state = await this.client.getStateForResponse(this.uri, response);
-          this.updateCache(state);
-          return state;
-        } finally {
-          this.activeRefresh = null;
-        }
-      })();
-    }
-
-    return this.activeRefresh;
-
+    return (async() : Promise<State<T>> => {
+      const response = await this.fetchOrThrow(params);
+      const state = await this.client.getStateForResponse(this.uri, response);
+      this.updateCache(state);
+      return state;
+    })();
   }
 
   /**
@@ -105,20 +93,12 @@ export class Resource<T = any> extends EventEmitter {
     const params = optionsToRequestInit('GET', getOptions);
     params.cache = 'no-cache';
 
-    if (!this.activeRefresh) {
-      this.activeRefresh = (async() : Promise<State<T>> => {
-        try {
-          const response = await this.fetchOrThrow(params);
-          const state = await this.client.getStateForResponse(this.uri, response);
-          this.updateCache(state);
-          return state;
-        } finally {
-          this.activeRefresh = null;
-        }
-      })();
-    }
-
-    return this.activeRefresh;
+    return (async() : Promise<State<T>> => {
+      const response = await this.fetchOrThrow(params);
+      const state = await this.client.getStateForResponse(this.uri, response);
+      this.updateCache(state);
+      return state;
+    })();
 
   }
 
