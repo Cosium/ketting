@@ -6,6 +6,7 @@ import { Link, LinkNotFound, LinkVariables } from './link';
 import { EventEmitter } from 'events';
 import { GetRequestOptions, PostRequestOptions, PatchRequestOptions, PutRequestOptions, HeadRequestOptions } from './types';
 import { needsJsonStringify } from './util/fetch-body-helper';
+import * as objectHash  from 'object-hash';
 
 /**
  * A 'resource' represents an endpoint on a server.
@@ -25,6 +26,8 @@ export class Resource<T = any> extends EventEmitter {
    */
   client: Client;
 
+  private readonly activeRefreshes: ActiveRefreshes<T>;
+
   /**
    * Create the resource.
    *
@@ -34,6 +37,7 @@ export class Resource<T = any> extends EventEmitter {
     super();
     this.client = client;
     this.uri = uri;
+    this.activeRefreshes = new ActiveRefreshes<T>();
 
   }
 
@@ -50,13 +54,21 @@ export class Resource<T = any> extends EventEmitter {
     }
 
     const params = optionsToRequestInit('GET', getOptions);
+    const uri = this.uri;
+    if (!this.activeRefreshes.has(uri, getOptions)) {
+      this.activeRefreshes.put(uri, getOptions, (async (): Promise<State<T>> => {
+        try {
+          const response = await this.fetchOrThrow(params);
+          const state = await this.client.getStateForResponse(uri, response);
+          this.updateCache(state);
+          return state;
+        } finally {
+          this.activeRefreshes.remove(uri, getOptions);
+        }
+      })());
+    }
 
-    return (async() : Promise<State<T>> => {
-      const response = await this.fetchOrThrow(params);
-      const state = await this.client.getStateForResponse(this.uri, response);
-      this.updateCache(state);
-      return state;
-    })();
+    return this.activeRefreshes.get(this.uri, getOptions)!;
   }
 
   /**
@@ -92,14 +104,21 @@ export class Resource<T = any> extends EventEmitter {
 
     const params = optionsToRequestInit('GET', getOptions);
     params.cache = 'no-cache';
+    const uri = this.uri;
+    if (!this.activeRefreshes.has(uri, getOptions)) {
+      this.activeRefreshes.put(uri, getOptions, (async (): Promise<State<T>> => {
+        try {
+          const response = await this.fetchOrThrow(params);
+          const state = await this.client.getStateForResponse(uri, response);
+          this.updateCache(state);
+          return state;
+        } finally {
+          this.activeRefreshes.remove(uri, getOptions);
+        }
+      })());
+    }
 
-    return (async() : Promise<State<T>> => {
-      const response = await this.fetchOrThrow(params);
-      const state = await this.client.getStateForResponse(this.uri, response);
-      this.updateCache(state);
-      return state;
-    })();
-
+    return this.activeRefreshes.get(this.uri, getOptions)!;
   }
 
   /**
@@ -488,3 +507,34 @@ function optionsToRequestInit(method: string, options?: GetRequestOptions | Post
 
 }
 
+class ActiveRefreshes<T = any> {
+  private readonly refreshByHash: Map<string, Promise<State<T>>> = new Map<string, Promise<State<T>>>();
+
+  put(uri: string, options: GetRequestOptions | undefined, activeRefresh: Promise<State<T>>): void {
+    this.refreshByHash.set(this.hash(uri, options), activeRefresh);
+  }
+
+  get(uri: string, options: GetRequestOptions | undefined): Promise<State<T>> | undefined {
+    return this.refreshByHash.get(this.hash(uri, options));
+  }
+
+  has(uri: string, options: GetRequestOptions | undefined): boolean {
+    return !!this.get(uri, options);
+  }
+
+  remove(uri: string, options: GetRequestOptions | undefined): boolean {
+    return this.refreshByHash.delete(this.hash(uri, options));
+  }
+
+  private hash(uri: string, options: GetRequestOptions | undefined): string {
+    if (!options) {
+      return objectHash(uri);
+    }
+    const headers: Record<string, string> = {};
+    new Headers(options.getContentHeaders?.() || options.headers)
+      .forEach((value, key) => {
+        headers[key] = value;
+      });
+    return objectHash({uri, headers});
+  }
+}
