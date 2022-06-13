@@ -1,6 +1,9 @@
 {
-  "name": "ketting",
-  "version": "7.4.2",
+  "name": "@cosium/ketting",
+  "version": "7.4.2-cosium.0",
+  "publishConfig": {
+    "registry": "https://nexus.cosium.dev/repository/npm-releases/"
+  },
   "description": "Opiniated HATEAOS / Rest client.",
   "main": "dist/index.js",
   "browser": "browser/ketting.min.js",
