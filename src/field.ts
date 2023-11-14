@@ -17,7 +17,7 @@ export type Field =
  * Fields can be used to automatically render forms or other UIs based on
  * hypermedia actions.
  */
-export interface BaseField<T> {
+interface BaseField<T> {
   /**
    * Name of the field.
    *
@@ -63,7 +63,7 @@ export interface BaseField<T> {
  *
  * This includes numbers, dates and time fields.
  */
-export interface RangeField<T> extends BaseField<T>  {
+interface RangeField<T> extends BaseField<T>  {
   max?: number;
   min?: number;
   step?: number;
@@ -72,7 +72,7 @@ export interface RangeField<T> extends BaseField<T>  {
 /**
  * Toggles/checkboxes
  */
-export interface BooleanField extends BaseField<boolean> {
+interface BooleanField extends BaseField<boolean> {
   type: 'checkbox' | 'radio';
 }
 
@@ -80,29 +80,29 @@ export interface BooleanField extends BaseField<boolean> {
  * Any field that encodes itself as a string but with no
  * special features.
  */
-export interface BasicStringField extends BaseField<string> {
+interface BasicStringField extends BaseField<string> {
   type: 'color' | 'email' | 'password' | 'search' | 'tel' | 'url';
   minLength?: number;
   maxLength?: number;
 }
 
-export interface RangeStringField extends RangeField<string> {
+interface RangeStringField extends RangeField<string> {
   type: 'date' | 'month' | 'time' | 'week';
 }
 
-export interface DateTimeField extends RangeField<Date> {
+interface DateTimeField extends RangeField<Date> {
   type: 'datetime' | 'datetime-local';
 }
 
-export interface HiddenField extends BaseField<string | number | null | boolean> {
+interface HiddenField extends BaseField<string | number | null | boolean> {
   type: 'hidden';
 }
 
-export interface FileField extends BaseField<never> {
+interface FileField extends BaseField<never> {
   type: 'file';
 }
 
-export interface NumberField extends RangeField<number> {
+interface NumberField extends RangeField<number> {
   type: 'number' | 'range';
 }
 
@@ -166,7 +166,7 @@ export type OptionsDataSource = {
 /**
  * Encodes a field that has a list of options a user can choose from.
  */
-export type SelectFieldSingle = BaseField<string> & {
+type SelectFieldSingle = BaseField<string> & {
   type: 'select';
   renderAs?: 'radio' | 'dropdown';
   multiple?: false;
@@ -175,21 +175,21 @@ export type SelectFieldSingle = BaseField<string> & {
 /**
  * An options field where users can select more than 1 item
  */
-export type SelectFieldMulti = BaseField<string> & {
+type SelectFieldMulti = BaseField<string> & {
   type: 'select';
   renderAs?: 'checkbox' | 'dropdown';
   multiple: true;
 } & OptionsDataSource;
 
 
-export interface TextField extends BaseField<string> {
+interface TextField extends BaseField<string> {
   type: 'text';
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
 }
 
-export interface TextAreaField extends BaseField<string> {
+interface TextAreaField extends BaseField<string> {
   type: 'textarea';
   minLength?: number;
   maxLength?: number;
