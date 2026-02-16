@@ -1,6 +1,6 @@
 {
   "name": "@cosium/ketting",
-  "version": "8.0.1-cosium.1",
+  "version": "8.0.1-cosium.2",
   "publishConfig": {
     "registry": "https://nexus.cosium.dev/repository/npm-releases/"
   },
